@@ -1,6 +1,5 @@
 import { useState, useMemo } from "@wordpress/element";
 import { useCommandLoader } from "@wordpress/commands";
-import { registerPlugin } from "@wordpress/plugins";
 import { Modal } from "@wordpress/components";
 import { useSelect } from "@wordpress/data";
 import { store as blockEditorStore } from "@wordpress/block-editor";
@@ -57,28 +56,32 @@ export default function BlockUsageCommand() {
      };
    }, []);
 
-  const commands = useMemo(() => {
-    if (!isViewable) {
-      return [];
-    }
+  const getBlockUsageCommands = () => function useBlockUsageCommands() {
+    const commands = useMemo(() => {
+      if (!isViewable) {
+        return [];
+      }
 
-    return [
-      {
-        name: "myplugin/show-block-usage",
-        label: __("Show Block Usage", "myplugin"),
-        icon: listView,
-        context: "entity-edit",
-        callback: ({ close }) => {
-          setIsOpen(true);
-          close();
+      return [
+        {
+          name: "myplugin/show-block-usage",
+          label: __("Show Block Usage", "myplugin"),
+          icon: listView,
+          context: "entity-edit",
+          callback: ({ close }) => {
+            setIsOpen(true);
+            close();
+          },
         },
-      },
-    ];
-  }, [isViewable]);
+      ];
+    }, [isViewable]);
+
+    return { commands, isLoading: false };
+  };
 
   useCommandLoader({
     name: "myplugin/block-usage-loader",
-    hook: () => ({ commands, isLoading: false }),
+    hook: getBlockUsageCommands(),
   });
 
   return isOpen ? <BlockUsageModal onClose={() => setIsOpen(false)} /> : null;

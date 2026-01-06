@@ -69,9 +69,23 @@ export default function LatestPostsCommand () {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  const { postsCount } = useSelect((select) => {
+    const query = {
+      per_page: 5,
+      order: "desc",
+      orderby: "modified",
+    };
+    const posts = select(coreStore).getEntityRecords("postType", "post", query);
+    return {
+      postsCount: Array.isArray(posts) ? posts.length : 0
+    };
+  }, []);
+
   useCommand({
     name: "myplugin/show-latest-posts",
-    label: __("Show Latest Posts", "myplugin"),
+    label: postsCount > 0
+      ? __(`Show Latest Posts (${postsCount})`, "myplugin")
+      : __("Show Latest Posts", "myplugin"),
     icon: postList,
     callback: () => setIsOpen(true),
     context: "site-editor",
