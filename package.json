@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@wordpress/icons": "^11.3.0",
-    "@wordpress/scripts": "^31.1.0"
+    "@wordpress/scripts": "^31.1.0",
+    "await-to-js": "^3.0.0"
   }
 }

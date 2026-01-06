@@ -1,11 +1,15 @@
 import { registerPlugin } from "@wordpress/plugins";
+import { createRoot } from "@wordpress/element";
+import { useCommandLoader } from "@wordpress/commands";
+import domReady from "@wordpress/dom-ready";
 
 import registerHandbookLinksCommands from "./components/handbookLinks";
+import { usePluginCommands } from "./components/pluginActions";
 import LatestPostsCommand from "./components/latestPosts";
 import CopyPostContent from "./components/copyPostContent";
 import BlockUsageCommand from "./components/blockUsage";
 
-// 1- Register handbook links commands - for all pages in the Admin area (using dispatcher)
+// 1- Register global commands - for all pages in the Admin area (using dispatcher)
 registerHandbookLinksCommands();
 
 // 2- Register all React-based commands together
@@ -21,4 +25,21 @@ const CommandsContainer = () => {
 
 registerPlugin("command-api-exploration", {
   render: CommandsContainer,
+});
+
+// 3- Register plugin actions command with custom hydration
+const PluginActionsCommand = () => {
+  useCommandLoader({
+    name: "myplugin/plugin-actions-loader",
+    hook: usePluginCommands,
+  });
+
+  return null;
+};
+
+domReady(() => {
+  const container = document.createElement("div");
+  container.id = "myplugin-plugin-actions-commands";
+  document.body.appendChild(container);
+  createRoot(container).render(<PluginActionsCommand />);
 });
