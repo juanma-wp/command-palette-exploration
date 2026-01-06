@@ -8,10 +8,16 @@ import { store as coreStore } from "@wordpress/core-data";
 import { listView } from "@wordpress/icons";
 import { __ } from "@wordpress/i18n";
 
-const BlockUsageModal = ({ onClose }) => {
+/**
+ * Custom hook to count block usage in the current post/page.
+ * Recursively walks through all blocks including nested ones.
+ *
+ * @return {Object} Object with block names as keys and their counts as values
+ */
+function useBlockCounts() {
   const blocks = useSelect((select) => select(blockEditorStore).getBlocks());
 
-  const blockCounts = useMemo(() => {
+  return useMemo(() => {
     const counts = {};
     const walkBlocks = (blocks) => {
       blocks.forEach((block) => {
@@ -24,7 +30,30 @@ const BlockUsageModal = ({ onClose }) => {
     walkBlocks(blocks);
     return counts;
   }, [blocks]);
+}
 
+/**
+ * Custom hook to check if the current post type is viewable on the frontend.
+ *
+ * @return {boolean} True if the post type is viewable, false otherwise
+ */
+function useIsViewablePostType() {
+  return useSelect((select) => {
+    const { getCurrentPostType } = select(editorStore);
+    const { getPostType } = select(coreStore);
+    return getPostType(getCurrentPostType())?.viewable ?? false;
+  }, []);
+}
+
+/**
+ * Modal component to display the block usage.
+ *
+ * @param {Object} props - The component props
+ * @param {Function} props.onClose - The function to close the modal
+ * @returns {JSX.Element} The modal component
+ */
+const BlockUsageModal = ({ onClose }) => {
+  const blockCounts = useBlockCounts();
   const hasBlocks = Object.keys(blockCounts).length > 0;
 
   return (
@@ -44,44 +73,35 @@ const BlockUsageModal = ({ onClose }) => {
   );
 };
 
-export default function BlockUsageCommand() {
+function useBlockUsageCommands(onOpen) {
+  const isViewable = useIsViewablePostType();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const commands = useMemo(() => {
+    if (!isViewable) return [];
 
-   const { isViewable } = useSelect((select) => {
-     const postType = select(editorStore).getCurrentPostType();
-     const postTypeObject = select(coreStore).getPostType(postType);
-     return {
-       isViewable: postTypeObject?.viewable
-     };
-   }, []);
-
-  const getBlockUsageCommands = () => function useBlockUsageCommands() {
-    const commands = useMemo(() => {
-      if (!isViewable) {
-        return [];
-      }
-
-      return [
-        {
-          name: "myplugin/show-block-usage",
-          label: __("Show Block Usage", "myplugin"),
-          icon: listView,
-          context: "entity-edit",
-          callback: ({ close }) => {
-            setIsOpen(true);
-            close();
-          },
+    return [
+      {
+        name: "myplugin/show-block-usage",
+        label: __("Show Block Usage", "myplugin"),
+        icon: listView,
+        context: "entity-edit",
+        callback: ({ close }) => {
+          onOpen();
+          close();
         },
-      ];
-    }, [isViewable]);
+      },
+    ];
+  }, [isViewable, onOpen]);
 
-    return { commands, isLoading: false };
-  };
+  return { commands, isLoading: false };
+}
+
+export default function BlockUsageCommand() {
+  const [isOpen, setIsOpen] = useState(false);
 
   useCommandLoader({
     name: "myplugin/block-usage-loader",
-    hook: getBlockUsageCommands(),
+    hook: () => useBlockUsageCommands(() => setIsOpen(true)),
   });
 
   return isOpen ? <BlockUsageModal onClose={() => setIsOpen(false)} /> : null;
