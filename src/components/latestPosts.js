@@ -65,8 +65,7 @@ const LatestPostsModal = ({ onClose }) => {
   );
 };
 
-export default function LatestPostsCommand () {
-
+const LatestPostsCommand = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { postsCount } = useSelect((select) => {
@@ -88,8 +87,9 @@ export default function LatestPostsCommand () {
       : __("Show Latest Posts", "myplugin"),
     icon: postList,
     callback: () => setIsOpen(true),
-    context: "site-editor",
   });
 
   return isOpen ? <LatestPostsModal onClose={() => setIsOpen(false)} /> : null;
 };
+
+export { LatestPostsCommand };

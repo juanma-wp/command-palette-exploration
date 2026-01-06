@@ -5,18 +5,17 @@ import domReady from "@wordpress/dom-ready";
 
 import registerHandbookLinksCommands from "./components/handbookLinks";
 import { usePluginCommands } from "./components/pluginActions";
-import LatestPostsCommand from "./components/latestPosts";
+import { LatestPostsCommand } from "./components/latestPosts";
 import CopyPostContent from "./components/copyPostContent";
 import BlockUsageCommand from "./components/blockUsage";
 
 // 1- Register global commands - for all pages in the Admin area (using dispatcher)
 registerHandbookLinksCommands();
 
-// 2- Register all React-based commands together
+// 2- Register all Block Editor commands together
 const CommandsContainer = () => {
   return (
     <>
-      <LatestPostsCommand />
       <CopyPostContent />
       <BlockUsageCommand />
     </>
@@ -39,7 +38,12 @@ const PluginActionsCommand = () => {
 
 domReady(() => {
   const container = document.createElement("div");
-  container.id = "myplugin-plugin-actions-commands";
+  container.id = "myplugin-global-commands";
   document.body.appendChild(container);
-  createRoot(container).render(<PluginActionsCommand />);
+  createRoot(container).render(
+    <>
+      <PluginActionsCommand />
+      <LatestPostsCommand />
+    </>
+  );
 });
